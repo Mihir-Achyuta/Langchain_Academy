@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from langchain.tools import tool
+from langchain.messages import HumanMessage
+from langgraph.checkpoint.memory import InMemorySaver  
 from typing import Dict, Any
 from tavily import TavilyClient
 
@@ -30,5 +32,16 @@ from langchain.agents import create_agent
 agent = create_agent(
     model="gpt-5-nano",
     tools=[web_search],
-    system_prompt=system_prompt
+    system_prompt=system_prompt,
+    checkpointer=InMemorySaver(), 
 )
+
+ingredients = input("Give me all your ingredients in space separated format: i1 i2 i3...: ")
+question = HumanMessage(content=f"The users ingredients are here {ingredients}. Please find out recipes that can be made with the ingredients they have.")
+# config = {"configurable": {"thread_id": "..."}}
+
+response = agent.invoke(
+    {"messages": [question]},
+)
+
+print("Here are your recipes: \n", response["messages"][-1].content)
